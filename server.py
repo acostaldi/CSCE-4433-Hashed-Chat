@@ -9,12 +9,13 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 default_ip_address = "127.0.0.1"
 default_port = 12345
 
+#initialize server with parameters if none are provided utilize default falues 
 if len(sys.argv) == 3:
     ip_address = str(sys.argv[1])
     port = int(sys.argv[2])
 else:
     print("Using default IP address and port for testing.")
-    ip_address = "127.0.0.1"
+    ip_address = default_ip_address
     port = default_port
 
 server.bind((ip_address, port))
@@ -48,6 +49,7 @@ def clientthread(connection, address):
             remove(connection)
             break 
 
+#send messages recieved from clients to other connected clients 
 def broadcast(message, sender_connection):
     for client_socket in client_list:
         if client_socket != sender_connection:

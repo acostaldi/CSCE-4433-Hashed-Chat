@@ -40,6 +40,7 @@ def clientthread(connection, address):
                 if message:
                     print("<" + address[0] + "> " + message.decode())
                     messageOut = "<" + address[0] + "> " + message.decode()
+                    broadcast(messageOut, sock)
                 else:
                     remove(connection)
         except Exception as e:
@@ -47,14 +48,14 @@ def clientthread(connection, address):
             remove(connection)
             break 
 
-def broadcast(message, connection):
-    for clients in client_list:
-        try:
-            clients.send(message.encode())
-        except:
-            clients.close()
-            
-            remove(clients)
+def broadcast(message, sender_connection):
+    for client_socket in client_list:
+        if client_socket != sender_connection:
+            try:
+                client_socket.send(message.encode())
+            except Exception as e:
+                print("Error broadcasting message:", e)
+                remove(client_socket)
 
 while True:
     

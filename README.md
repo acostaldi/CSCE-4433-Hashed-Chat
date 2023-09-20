@@ -1,2 +1,3 @@
 # CSCE4433-Encrypted-Chat
-Chat app utilizing AES and RSA Encryption
+
+Python based chat app allowing for clients to communicate over a hosted server with options for RSA and AES decryption and encryption.

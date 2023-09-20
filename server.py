@@ -34,7 +34,7 @@ def clientthread(connection, address):
     while True:
         try:
             # Use select.select() to check if there is data to read
-            read_sockets, _, _ = select.select([connection], [], [], 1)  # 1-second timeout
+            read_sockets, _, _ = select.select([connection], [], [], 5)  # 5-second timeout
             for sock in read_sockets:
                 message = sock.recv(2048)
                 if message:

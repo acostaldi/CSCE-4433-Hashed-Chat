@@ -38,7 +38,7 @@ receive_thread.start()
 
 while True:
     try:
-        message = input("<You> ")
+        message = input()
         client.send(message.encode())
     except KeyboardInterrupt:
         print("\nUser interrupted.")

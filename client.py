@@ -8,6 +8,7 @@ client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 default_ip_address = "127.0.0.1"
 default_port = 12345
 
+#if an ip address and port are not provided use default vales for testing 
 if len(sys.argv) == 3:
     ip_address = str(sys.argv[1])
     port = int(sys.argv[2])
@@ -21,7 +22,8 @@ try:
 except Exception as e:
     print("Error connecting to the server:", e)
     sys.exit(1)
-
+    
+#decode messages recieved from the server 
 def receive_messages():
     while True:
         message = client.recv(2048).decode()

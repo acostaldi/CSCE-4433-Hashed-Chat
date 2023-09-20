@@ -8,7 +8,7 @@ client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 default_ip_address = "127.0.0.1"
 default_port = 12345
 
-#if an ip address and port are not provided use default vales for testing 
+#if an ip address and port are not provided use default values for testing 
 if len(sys.argv) == 3:
     ip_address = str(sys.argv[1])
     port = int(sys.argv[2])

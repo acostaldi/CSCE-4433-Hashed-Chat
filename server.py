@@ -9,7 +9,7 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 default_ip_address = "127.0.0.1"
 default_port = 12345
 
-#initialize server with parameters if none are provided utilize default falues 
+#initialize server with parameters if none are provided utilize default values 
 if len(sys.argv) == 3:
     ip_address = str(sys.argv[1])
     port = int(sys.argv[2])

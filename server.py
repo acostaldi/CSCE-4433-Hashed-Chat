@@ -31,7 +31,6 @@ def remove(connection):
         client_list.remove(connection)
 
 def clientthread(connection, address):
-    
     while True:
         try:
             # Use select.select() to check if there is data to read
@@ -39,25 +38,40 @@ def clientthread(connection, address):
             for sock in read_sockets:
                 message = sock.recv(2048)
                 if message:
-                    print("<" + address[0] + "> " + message.decode())
-                    messageOut = "<" + address[0] + "> " + message.decode()
-                    broadcast(messageOut, sock)
+                    sender_address = "<" + address[0] + "> "
+                    if message.startswith(b"AES"):
+                        send_aes_message(message, sender_address, sock)
+                    else:
+                        send_plain_message(message, sender_address, sock)
                 else:
                     remove(connection)
         except Exception as e:
             print("Error:", e)
             remove(connection)
-            break 
+            break
 
-#send messages recieved from clients to other connected clients 
 def broadcast(message, sender_connection):
     for client_socket in client_list:
         if client_socket != sender_connection:
             try:
-                client_socket.send(message.encode())
+                print(message)
+                client_socket.send(message)
             except Exception as e:
                 print("Error broadcasting message:", e)
                 remove(client_socket)
+                
+def send_aes_message(message, sender_address, sender_connection):
+    # Process AES-encrypted message here
+    senderInfo = "New AES encrypted message from: " + sender_address
+    broadcast(senderInfo.encode(), sender_connection)
+    print("clientthread: AES found sending to broadcast")
+    broadcast(message, sender_connection)
+
+def send_plain_message(message, sender_address, sender_connection):
+    # Process non-AES message here
+    print("clientthread: plaintext found sending to broadcast")
+    messageOut = sender_address + message.decode()
+    broadcast(messageOut.encode(), sender_connection)
 
 while True:
     

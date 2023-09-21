@@ -39,8 +39,12 @@ def clientthread(connection, address):
                 message = sock.recv(2048)
                 if message:
                     sender_address = "<" + address[0] + "> "
-                    if message.startswith(b"AES"):
+                    if message.startswith(b"AES:"):
                         send_aes_message(message, sender_address, sock)
+                    elif message.startswith(b'PUBLIC_KEY:'):
+                        send_public_key(message, sender_address, sock)
+                    elif message.startswith(b'RSA:'):
+                        send_rsa_message(message, sender_address, sock)
                     else:
                         send_plain_message(message, sender_address, sock)
                 else:
@@ -64,7 +68,18 @@ def send_aes_message(message, sender_address, sender_connection):
     # Process AES-encrypted message here
     senderInfo = "New AES encrypted message from: " + sender_address
     broadcast(senderInfo.encode(), sender_connection)
-    print("clientthread: AES found sending to broadcast")
+    broadcast(message, sender_connection)
+    
+def send_rsa_message(message, sender_address, sender_connection):
+    # Process RSA-encrypted message here
+    senderInfo = "New RSA encrypted message from: " + sender_address
+    broadcast(senderInfo.encode(), sender_connection)
+    broadcast(message, sender_connection)
+
+def send_public_key(message, sender_address, sender_connection):
+    # Process AES-encrypted message here
+    senderInfo = "New RSA Public Key Recieved from: " + sender_address
+    broadcast(senderInfo.encode(), sender_connection)
     broadcast(message, sender_connection)
 
 def send_plain_message(message, sender_address, sender_connection):

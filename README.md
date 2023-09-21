@@ -7,10 +7,12 @@ Python based chat app allowing for clients to communicate over a hosted server w
 Basic Operation:
 
 To open a server(leave last two args blank to use default values)
-/python server.py <ip_address> <port>
+
+/python server.py (ip_address) (port)
 
 To open a client to connect to the server(leave last two args blank to use default values)
-/python client.py <ip_address> <port>
+
+/python client.py (ip_address) (port)
 
 Available Build Scripts:
 

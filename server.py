@@ -78,7 +78,7 @@ def send_rsa_message(message, sender_address, sender_connection):
 
 def send_public_key(message, sender_address, sender_connection):
     # Process AES-encrypted message here
-    senderInfo = "New RSA Public Key Recieved from: " + sender_address
+    senderInfo = "New RSA Public Key Received from: " + sender_address
     broadcast(senderInfo.encode(), sender_connection)
     broadcast(message, sender_connection)
 

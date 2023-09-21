@@ -41,7 +41,7 @@ except Exception as e:
     print("Error connecting to the server:", e)
     sys.exit(1)
     
-#decode messages recieved from the server 
+#decode messages received from the server 
 def receive_messages():
     while True:
         message = client.recv(2048)

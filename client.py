@@ -113,7 +113,7 @@ def rsa_public_private():
     client.send(b'PUBLIC_KEY:' + public_key_out.export_key())
     return rsa_private_key
 
-# Start a separate thread to receive messages from the server
+#Start a separate thread to receive messages from the server
 receive_thread = threading.Thread(target=receive_messages)
 receive_thread.daemon = True
 receive_thread.start()

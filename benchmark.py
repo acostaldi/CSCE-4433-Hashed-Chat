@@ -14,7 +14,7 @@ def benchmark_aes_encryption(test_message):
 
     intializationVector = get_random_bytes(16)
     
-    # Decrypt and measure time
+    #Decrypt and measure time
     start_time = time.time()
 
     aes_cipher128 = AES.new(aes_key128, AES.MODE_CBC, intializationVector)
@@ -36,7 +36,7 @@ def benchmark_aes_encryption(test_message):
     elapsed_time = end_time - start_time
     print("AES Average Encryption time = {:.6f} seconds".format(elapsed_time / 3))
 
-    # Decrypt and measure time
+    #Decrypt and measure time
     start_time = time.time()
 
     decipher128 = AES.new(aes_key128, AES.MODE_CBC, intializationVector)
@@ -47,29 +47,29 @@ def benchmark_aes_encryption(test_message):
     decrypted192 = decipher192.decrypt(ciphertext192)
     decrypted256 = decipher256.decrypt(ciphertext256)
 
-    # Unpad the decrypted plaintext
+    #Unpad the decrypted plaintext
     plaintext128 = unpad(decrypted128, AES.block_size).decode('utf-8')
     plaintext192 = unpad(decrypted192, AES.block_size).decode('utf-8')
     plaintext256 = unpad(decrypted256, AES.block_size).decode('utf-8')
 
     end_time = time.time()
 
-    # Print decrypted values
+    #Print decrypted values
     print("Decrypted 128-bit:", plaintext128)
     print("Decrypted 192-bit:", plaintext192)
     print("Decrypted 256-bit:", plaintext256)
 
-    # Print the time taken for decryption
+    #Print the time taken for decryption
     elapsed_time = end_time - start_time
     print("AES Average Encryption time = {:.6f} seconds".format(elapsed_time / 3))
 
 def benchmark_rsa_encryption(test_message):
-    # Generate RSA keys
+    #Generate RSA keys
     rsa_key1024 = RSA.generate(1024)
     rsa_key2048 = RSA.generate(2048)
     rsa_key4096 = RSA.generate(4096)
 
-    # Encrypt and measure time
+    #Encrypt and measure time
     start_time = time.time()
 
     cipher1024 = PKCS1_OAEP.new(rsa_key1024)
@@ -88,7 +88,7 @@ def benchmark_rsa_encryption(test_message):
     elapsed_time = end_time - start_time
     print("RSA Average Encryption time = {:.6f} seconds".format(elapsed_time / 3))
 
-    # Decrypt and measure time
+    #Decrypt and measure time
     start_time = time.time()
 
     plaintext1024 = cipher1024.decrypt(ciphertext1024).decode('utf-8')
@@ -101,7 +101,7 @@ def benchmark_rsa_encryption(test_message):
 
     end_time = time.time()
 
-    # Print the time taken for decryption
+    #Print the time taken for decryption
     elapsed_time = end_time - start_time
     print("RSA Average Decryption time = {:.6f} seconds".format(elapsed_time / 3))
 

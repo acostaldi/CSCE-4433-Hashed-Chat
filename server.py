@@ -33,7 +33,7 @@ def remove(connection):
 def clientthread(connection, address):
     while True:
         try:
-            # Use select.select() to check if there is data to read
+            #Use select.select() to check if there is data to read
             read_sockets, _, _ = select.select([connection], [], [], 5)  # 5-second timeout
             for sock in read_sockets:
                 message = sock.recv(2048)
@@ -65,25 +65,25 @@ def broadcast(message, sender_connection):
                 remove(client_socket)
                 
 def send_aes_message(message, sender_address, sender_connection):
-    # Process AES-encrypted message here
+    #Process AES-encrypted message here
     senderInfo = "New AES encrypted message from: " + sender_address
     broadcast(senderInfo.encode(), sender_connection)
     broadcast(message, sender_connection)
     
 def send_rsa_message(message, sender_address, sender_connection):
-    # Process RSA-encrypted message here
+    #Process RSA-encrypted message here
     senderInfo = "New RSA encrypted message from: " + sender_address
     broadcast(senderInfo.encode(), sender_connection)
     broadcast(message, sender_connection)
 
 def send_public_key(message, sender_address, sender_connection):
-    # Process AES-encrypted message here
+    #Process Public key here
     senderInfo = "New RSA Public Key Received from: " + sender_address
     broadcast(senderInfo.encode(), sender_connection)
     broadcast(message, sender_connection)
 
 def send_plain_message(message, sender_address, sender_connection):
-    # Process non-AES message here
+    #Process non-encrypted message here
     print("clientthread: plaintext found sending to broadcast")
     messageOut = sender_address + message.decode()
     broadcast(messageOut.encode(), sender_connection)

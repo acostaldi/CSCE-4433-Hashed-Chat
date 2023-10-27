@@ -8,6 +8,9 @@ from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Random import get_random_bytes
+from Crypto.PublicKey import RSA
+from Crypto.Signature import pkcs1_15
+from Crypto.Hash import SHA256
 from Crypto.Util.Padding import unpad
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -53,38 +56,18 @@ def receive_messages():
         else:
             if message.startswith(b'PUBLIC_KEY:'):
                 receive_public(message)
-            elif message.startswith(b'RSA:'):
-                decode_rsa(message)
-            else:
+            elif message.startswith(b'HMAC:'):
                 decode_hmac(message)
-
-def decode_rsa(message):
-    global rsa_private_key
-    print(message)
-    print("decoding...")
-    encrypted_message = message[len(b'RSA:'):]
-    private_key = RSA.import_key(rsa_private_key)
-    cipher_rsa = PKCS1_OAEP.new(private_key)
-    decrypted_message = cipher_rsa.decrypt(encrypted_message).decode()
-    print(decrypted_message)
+            elif message.startswith(b'RSA_SIGNED:'):
+                receive_rsa_signed_message(message)
+            else:
+                print("\n" + message.decode())
 
 def receive_public(message):
     global received_public_key
     public_key_in = message[len(b'PUBLIC_KEY:'):]
     received_public_key = RSA.import_key(public_key_in)
     print(received_public_key)
-
-def send_rsa(message):
-    global received_public_key
-    if received_public_key is None:
-        print("Error: Public key not received.")
-        return
-    
-    print("Recipient public key: ")
-    print(received_public_key)
-    cipher_rsa = PKCS1_OAEP.new(received_public_key)
-    encrypted_message = cipher_rsa.encrypt(message.encode())
-    client.send(b'RSA:' + encrypted_message)
 
 def rsa_public_private():
     global rsa_private_key
@@ -104,12 +87,13 @@ def send_hmac_message(message, secret_key):
     hmac_value = generate_hmac(message, hmac_key)
 
     # Combine the message and HMAC
-    message_with_hmac = message + hmac_value
+    message_with_hmac = hmac_value + message
 
     # Send the message with HMAC
-    client.send(message_with_hmac)
+    client.send(b'HMAC:' + message_with_hmac)
     
 def decode_hmac(message):
+    message = message[len(b'HMAC:'):]
     received_hmac = message[:32]  # Assuming the first 32 bytes are the HMAC
     message_content = message[32:]  # Assuming the rest of the message is the content
     verification_result = verify_hmac(message_content, received_hmac, aes_secret_key)
@@ -124,9 +108,40 @@ def verify_hmac(message, received_hmac, secret_key):
     # Calculate the expected HMAC for the received message
     h = hmac.new(secret_key, message, hashlib.sha256)
     expected_hmac = h.digest()
+    
+    print("Expected HMAC:", expected_hmac)
+    print("Received HMAC:", received_hmac)
 
     # Compare the expected HMAC to the received HMAC
     return hmac.compare_digest(expected_hmac, received_hmac)
+
+def send_rsa_signed_message(message, rsa_private_key):
+    # Sign the message 
+    private_key = RSA.import_key(rsa_private_key)
+    message_hash = SHA256.new(message.encode('utf-8'))
+    signature = pkcs1_15.new(private_key).sign(message_hash)
+
+    signed_message = message.encode() + b'SIGNATURE:' + signature
+
+    client.send(b'RSA_SIGNED:' + signed_message)
+
+def receive_rsa_signed_message(message):
+    message = message[len(b'RSA_SIGNED:'):]
+    parts = message.split(b'SIGNATURE:', 1)
+
+    if len(parts) != 2:
+        print("Invalid message format")
+        return
+
+    message_content = parts[0]
+    signature = parts[1]
+
+    message_hash = SHA256.new(message_content)
+    try:
+        pkcs1_15.new(received_public_key).verify(message_hash, signature)
+        print("Signature verified successfully. Message:", message_content.decode())
+    except (ValueError, TypeError):
+        print("Signature verification failed. Message may be tampered with.")
 
 
 #Start a separate thread to receive messages from the server
@@ -137,20 +152,22 @@ receive_thread.start()
 while True:
     try:
         print("\nOptions:")
-        print("1. Send HMAC verified message")
-        print("2. Send AES encrypted message")
+        print("1. Send plaintext message")
+        print("2. Send HMAC verified message")
         print("3. Generate RSA Public/Private key pairs and transmit Public Key to peer")
-        print("4. Send RFS encrypted message")
+        print("4. Send RSA signed message")
         choice = input("Select an option: ")
         
         if choice == "1":
             message = input()
-            send_hmac_message(message, aes_secret_key)
+            client.send(message)
         elif choice == "2":
-            rsa_private_key = rsa_public_private()
+            send_hmac_message(message, aes_secret_key)
         elif choice == "3":
+            rsa_private_key = rsa_public_private()
+        elif choice == "4":
             message = input()
-            send_rsa(message)
+            send_rsa_signed_message(message, rsa_private_key)
     except KeyboardInterrupt:
         print("\nUser interrupted.")
         client.close()

@@ -1,111 +1,62 @@
-import secrets
 import time
-from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.Random import get_random_bytes
-from Crypto.Util.Padding import unpad, pad
+from Crypto.Signature import pkcs1_15
 
-def benchmark_aes(test_message):
-    key_sizes = [128, 192, 256]
-    average_encryption_times = []
-    average_decryption_times = []
+def benchmark_hmac_generation(message, secret_key, iterations=100):
+    start_time = time.time()
+    for _ in range(iterations):
+        h = SHA256.new(message)
+        h.update(secret_key)
+    end_time = time.time()
+    return (end_time - start_time) / iterations
 
-    for key_size in key_sizes:
-        # Generate AES keys
-        aes_key = get_random_bytes(key_size // 8)
-        intializationVector = get_random_bytes(16)
+def benchmark_signature(message, rsa_private_key, rsa_public_key, iterations=100):
+    start_time = time.time()
+    for _ in range(iterations):
+        # Signature generation
+        message_hash = SHA256.new(message)
+        signature = pkcs1_15.new(rsa_private_key).sign(message_hash)
 
-        # Encryption
-        encryption_times = []
+        # Signature verification
+        try:
+            message_hash = SHA256.new(message)
+            pkcs1_15.new(rsa_public_key).verify(message_hash, signature)
+        except (ValueError, TypeError):
+            pass
+    end_time = time.time()
+    signature_generation_time = (end_time - start_time) / iterations
 
-        for _ in range(100):
-            start_time = time.time()
+    start_time = time.time()
+    for _ in range(iterations):
+        message_hash = SHA256.new(message)
+        signature = pkcs1_15.new(rsa_private_key).sign(message_hash)
 
-            aes_cipher = AES.new(aes_key, AES.MODE_CBC, intializationVector)
+        try:
+            message_hash = SHA256.new(message)
+            pkcs1_15.new(rsa_public_key).verify(message_hash, signature)
+        except (ValueError, TypeError):
+            pass
+    end_time = time.time()
+    signature_verification_time = (end_time - start_time) / iterations
 
-            plaintext = test_message[:-(len(test_message) % 16)].encode('utf-8')
-            plaintext = pad(test_message.encode('utf-8'), AES.block_size)
+    return signature_generation_time, signature_verification_time
 
-            ciphertext = aes_cipher.encrypt(plaintext)
+if __name__ == '__main__':
+    #message = b'1234567'  # defualt value
+    print("Input message: ")
+    message = input()
+    message = message.encode('utf-8')
+    secret_key = b'1234567890123456'  
 
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            encryption_times.append(elapsed_time)
+    hmac_time = benchmark_hmac_generation(message, secret_key)
+    print(f'Average time for HMAC generation: {hmac_time:.6f} seconds')
 
-        average_encryption_time = sum(encryption_times) / len(encryption_times)
-        average_encryption_times.append(average_encryption_time)
+    rsa_private_key = RSA.generate(2048)
+    rsa_public_key = rsa_private_key.publickey()
 
-        # Decryption
-        decryption_times = []
+    signature_generation_time, signature_verification_time = benchmark_signature(
+        message, rsa_private_key, rsa_public_key)
 
-        for _ in range(100):
-            start_time = time.time()
-
-            decipher = AES.new(aes_key, AES.MODE_CBC, intializationVector)
-
-            decrypted = decipher.decrypt(ciphertext)
-
-            # Unpad the decrypted plaintext
-            plaintext = unpad(decrypted, AES.block_size).decode('utf-8')
-
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            decryption_times.append(elapsed_time)
-
-        average_decryption_time = sum(decryption_times) / len(decryption_times)
-        average_decryption_times.append(average_decryption_time)
-
-        print(f"AES {key_size}-bit Average Encryption Time = {average_encryption_time:.6f} seconds")
-        print(f"AES {key_size}-bit Average Decryption Time = {average_decryption_time:.6f} seconds\n")
-        
-def benchmark_rsa(test_message):
-    key_sizes = [1024, 2048, 4096]
-    average_encryption_times = []
-    average_decryption_times = []
-
-    for key_size in key_sizes:
-        # Generate RSA keys
-        rsa_key = RSA.generate(key_size)
-
-        # Encryption
-        encryption_times = []
-
-        for _ in range(100):
-            start_time = time.time()
-
-            cipher = PKCS1_OAEP.new(rsa_key)
-            ciphertext = cipher.encrypt(test_message.encode('utf-8'))
-
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            encryption_times.append(elapsed_time)
-
-        average_encryption_time = sum(encryption_times) / len(encryption_times)
-        average_encryption_times.append(average_encryption_time)
-
-        # Decryption
-        decryption_times = []
-
-        for _ in range(100):
-            start_time = time.time()
-
-            plaintext = cipher.decrypt(ciphertext).decode('utf-8')
-
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            decryption_times.append(elapsed_time)
-
-        average_decryption_time = sum(decryption_times) / len(decryption_times)
-        average_decryption_times.append(average_decryption_time)
-
-        print(f"RSA {key_size}-bit Average Encryption Time = {average_encryption_time:.6f} seconds")
-        print(f"RSA {key_size}-bit Average Decryption Time = {average_decryption_time:.6f} seconds\n")
-    
-def main():
-    messageIn = input("Enter test value: ")
-    benchmark_aes(messageIn)
-    benchmark_rsa(messageIn)
-        
-if __name__ == "__main__":
-        main()
+    print(f'Average time for digital signature generation: {signature_generation_time:.6f} seconds')
+    print(f'Average time for digital signature verification: {signature_verification_time:.6f} seconds')

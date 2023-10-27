@@ -41,9 +41,11 @@ def clientthread(connection, address):
                     sender_address = "<" + address[0] + "> "
                     if message.startswith(b'PUBLIC_KEY:'):
                         send_public_key(message, sender_address, sock)
-                    elif message.startswith(b'RSA:'):
-                        send_rsa_message(message, sender_address, sock)
-                    else:
+                    elif message.startswith(b'HMAC:'):
+                        send_hmac_message(message, sender_address, sock)
+                    elif message.startswith(b'RSA_SIGNED:'):
+                        send_rsa_signed_message(message, sender_address, sock)
+                    else: 
                         send_plain_message(message, sender_address, sock)
                 else:
                     remove(connection)
@@ -62,24 +64,31 @@ def broadcast(message, sender_connection):
                 print("Error broadcasting message:", e)
                 remove(client_socket)
                 
-def send_rsa_message(message, sender_address, sender_connection):
-    #Process RSA-encrypted message here
-    senderInfo = "New RSA encrypted message from: " + sender_address
-    broadcast(senderInfo.encode(), sender_connection)
-    broadcast(message, sender_connection)
-
 def send_public_key(message, sender_address, sender_connection):
     #Process Public key here
     senderInfo = "New RSA Public Key Received from: " + sender_address
     broadcast(senderInfo.encode(), sender_connection)
     broadcast(message, sender_connection)
 
-def send_plain_message(message, sender_address, sender_connection):
-    #Process non-encrypted message here
+def send_hmac_message(message, sender_address, sender_connection):
+    #Process hmac message here
     print("clientthread: HMAC Encoded found sending to broadcast")
     senderInfo = "New HMAC message recieved from: " + sender_address
     broadcast(senderInfo.encode(), sender_connection)
     broadcast(message, sender_connection)
+
+def send_rsa_signed_message(message, sender_address, sender_connection):
+    #Process rsa signed message here
+    print("clientthread: RSA Signed message found sending to broadcast")
+    senderInfo = "New RSA Signed message recieved from: " + sender_address
+    broadcast(senderInfo.encode(), sender_connection)
+    broadcast(message, sender_connection)
+
+def send_plain_message(message, sender_address, sender_connection):
+    #Process non-encrypted message here
+    print("clientthread: plaintext found sending to broadcast")
+    messageOut = sender_address + message.decode()
+    broadcast(messageOut.encode(), sender_connection)
 
 while True:
     

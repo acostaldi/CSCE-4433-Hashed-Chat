@@ -1,8 +1,8 @@
-# CSCE4433-Encrypted-Chat
+# CSCE4433-HMAC-RSA-Chat
 
 Note: This App requires Python and the pycryptodome library to be installed.
 
-Python based chat app allowing for clients to communicate over a hosted server with options for RSA and AES decryption and encryption.
+Python based chat app allowing for clients to communicate over a hosted server with options for HMAC and RSA Signed verification.
 
 # Basic Operation:
 
@@ -16,8 +16,11 @@ To open a client to connect to the server(leave last two args blank to use defau
 
 # Available Build Scripts:
 
-benchmark.bat
-To benchmark the average time for encryptin and decrypting with AES(128-bit, 192-bit, and 256-bit keys) and RSA( 1024-bit, 2048-bit, and 4096-bit keys) and return the average time.
+benchmark_hmac_rsa.bat
+To benchmark the average time for HMAC generation and RSA signing and verification.
+
+testcollision.bat
+To test how long it takes to find a collision with the first 8 bits of HMAC.
 
 test.bat
 Open a new server defaulted to localhost and a defualt port and two clients defaulted to to the same origins to allow testing of chat features and encrypted chat features.
